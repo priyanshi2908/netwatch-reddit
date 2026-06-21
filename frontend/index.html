@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetWatch LEA Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-weight/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- SIDEBAR (Matches image-2.png) -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col justify-between">
+            <div>
+                <div class="p-6 flex items-center space-x-2 border-b border-gray-100">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none text-gray-900">NetWatch</h1>
+                        <span class="text-xs text-gray-500 font-medium">LEA • V0.1</span>
+                    </div>
+                </div>
+                <nav class="p-4 space-y-1">
+                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-lg font-medium text-sm">
+                        <i class="fas fa-terminal w-5 text-center"></i> <span>Command Center</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                        <i class="fas fa-rss w-5 text-center"></i> <span>Live OSINT Feed</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                        <i class="fas fa-bullseye w-5 text-center"></i> <span>Reddit Scrapers</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                        <i class="fas fa-archive w-5 text-center"></i> <span>Evidence Vault</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                        <i class="fas fa-users-cog w-5 text-center"></i> <span>Suspect Dossiers</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                        <i class="fas fa-balance-scale w-5 text-center"></i> <span>§69B Generator</span>
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Officer Profile Bottom Profile Block -->
+            <div class="p-4 border-t border-gray-100 bg-gray-50/70">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-gray-400 block mb-1">Live • Operational</span>
+                <div class="text-xs font-semibold text-gray-700">NCB-DL-4471</div>
+                <div class="text-sm font-bold text-gray-900">Officer R. Sharma</div>
+                <div class="text-xs text-gray-500">Narcotics Control Bureau</div>
+            </div>
+        </aside>
+
+        <!-- MAIN LAYOUT SPACE -->
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            
+            <!-- Top Alert Banner System Context Header -->
+            <header class="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between text-xs font-medium">
+                <div class="flex items-center space-x-6">
+                    <div>OP. SECTOR: <span class="font-bold text-gray-900">IND-NCB-CYB-04</span></div>
+                    <div>CLASSIFICATION: <span class="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-red-100">Restricted</span></div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="inline-flex items-center bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+                        Reddit Monitoring System Active
+                    </span>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Panel -->
+            <div class="p-8 space-y-6">
+                <div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Command Center</h2>
+                            <p class="text-sm text-gray-500">Real-time anti-narcotics surveillance via public community signals (India Grid)</p>
+                        </div>
+                        <button onclick="triggerScan()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow-sm flex items-center space-x-2">
+                            <i class="fas fa-sync-alt animate-spin-hover"></i> <span>Force Scraping Run</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid Row -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Subreddits Tracked</div>
+                        <div id="stat-channels" class="text-3xl font-extrabold text-gray-900 mt-1">14</div>
+                        <div class="text-xs text-gray-500 mt-1">Target Indian Hubs</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Flagged Posts</div>
+                        <div id="stat-posts" class="text-3xl font-extrabold text-gray-900 mt-1">182</div>
+                        <div class="text-xs text-red-600 font-semibold mt-1"><i class="fas fa-arrow-up"></i> Scanned 30m ago</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Evidence Anchored</div>
+                        <div id="stat-evidence" class="text-3xl font-extrabold text-gray-900 mt-1">52</div>
+                        <div class="text-xs text-gray-500 mt-1">SHA-256 Secured Vault</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Suspect Dossiers</div>
+                        <div id="stat-dossiers" class="text-3xl font-extrabold text-gray-900 mt-1">9</div>
+                        <div class="text-xs text-emerald-600 font-semibold mt-1">Ready for NCB Action</div>
+                    </div>
+                </div>
+
+                <!-- Splitted Threat Intel Map & Alerts Feed Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Middle Left Block: Threat Hotspots -->
+                    <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm uppercase tracking-wider mb-4 text-gray-400">Geospatial Intel • Threat Map Bharat</h3>
+                            <div class="relative w-full h-64 bg-slate-900 rounded-lg flex items-center justify-center text-gray-500 overflow-hidden">
+                                <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+                                <!-- Mock Map Pins Visuals -->
+                                <div class="absolute top-1/4 left-1/3 flex items-center space-x-2 bg-black/50 text-white px-2 py-1 rounded text-[10px] border border-red-500/50">
+                                    <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                                    <span>Manali Node</span>
+                                </div>
+                                <div class="absolute top-1/2 left-1/2 flex items-center space-x-2 bg-black/50 text-white px-2 py-1 rounded text-[10px] border border-amber-500/50">
+                                    <span class="w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
+                                    <span>Delhi Hub</span>
+                                </div>
+                                <span class="text-xs font-mono tracking-widest text-slate-400 z-10">MAP ENGINE INITIALIZED</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Right Block: Live Incident Stream -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-5 flex flex-col">
+                        <h3 class="font-bold text-gray-900 text-sm uppercase tracking-wider mb-4 text-gray-400">Live OSINT Intelligence Stream</h3>
+                        <div id="alerts-feed" class="space-y-3 overflow-y-auto max-h-[17.5rem] pr-1">
+                            <!-- Injected Dynamically by JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- UI Core Logic Hydrator script -->
+   <script>
+    const API_URL = "http://127.0.0.1:8000/api";
+
+// Hydrates stats boxes and interactive panels natively
+async function fetchDashboardData() {
+    try {
+        // 1. Fetch live metrics counters from RAM store
+        const statsRes = await fetch(`${API_URL}/stats`);
+        const stats = await statsRes.json();
+        document.getElementById('stat-channels').innerText = stats.channels_tracked || 0;
+        document.getElementById('stat-posts').innerText = stats.flagged_posts || 0;
+        document.getElementById('stat-evidence').innerText = stats.evidence_sealed || 0;
+        document.getElementById('stat-dossiers').innerText = stats.suspect_dossiers || 0;
+
+        // 2. Fetch the Evidence Vault payload to render live flagged entries
+        const evidenceRes = await fetch(`${API_URL}/evidence`);
+        const evidenceList = await evidenceRes.json();
+        const feedContainer = document.getElementById('alerts-feed');
+        feedContainer.innerHTML = '';
+
+        if(evidenceList.length === 0) {
+            feedContainer.innerHTML = '<div class="text-gray-400 text-center py-4">No active threats flagged yet. Run a scrape loop target.</div>';
+            return;
+        }
+
+        // Add real-world entries to the UI view
+        evidenceList.forEach(item => {
+            feedContainer.innerHTML += `
+                <div class="p-3 bg-red-50/60 border border-red-100 rounded-lg text-xs space-y-1">
+                    <div class="flex justify-between font-bold text-gray-900">
+                        <span class="text-red-700 font-mono">r/${item.channel} • Target Entry</span>
+                        <span class="text-gray-400 font-normal">Active</span>
+                    </div>
+                    <p class="text-gray-700 font-sans line-clamp-3">"${item.text}"</p>
+                    <div class="pt-1 text-[10px] text-red-600 font-mono flex flex-col space-y-0.5">
+                        <div><i class="fas fa-exclamation-triangle mr-1"></i> Class: ${item.label} (${Math.round(item.confidence * 100)}% Conf)</div>
+                        <div class="text-gray-400 truncate">Hash: ${item.evidence_hash}</div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (err) {
+        console.error("Connection link offline:", err);
+    }
+}
+
+// Triggers actual live scrape of any target Indian community subreddit
+async function triggerScan() {
+    // Prompting user for target choice so judges can test ANY subreddit live on the spot
+    const targetSub = prompt("Enter a Subreddit handle to target for live OSINT processing:", "opiates");
+    if (!targetSub) return;
+
+    try {
+        const response = await fetch(`${API_URL}/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ handle: targetSub, platform: "Reddit" })
+        });
+        const result = await response.json();
+        
+        if(response.ok) {
+            alert(`Successfully ingested live community feed r/${targetSub}! Found ${result.flagged_count} critical violations.`);
+            fetchDashboardData();
+        } else {
+            alert(`Error: ${result.detail}`);
+        }
+    } catch (e) {
+        alert("Failed to reach processing pipeline network endpoint.");
+    }
+}
+
+// Hydrate elements on boot and establish active polling interval loops
+fetchDashboardData();
+setInterval(fetchDashboardData, 5000);
+   </script>
+</body>
+</html>
