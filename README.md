@@ -1,11 +1,4 @@
-# netwatch-reddit
-
 # NetWatch — AI-Powered Drug Trafficking Intelligence Platform
-
-> Built for India's Narcotics Control Bureau (NCB) as part of a national cybersecurity hackathon.  
-> Team Cipher • Thapar Institute of Engineering and Technology
-
----
 
 ## What is NetWatch?
 
