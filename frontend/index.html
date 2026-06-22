@@ -5,221 +5,516 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NetWatch LEA Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-weight/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin: 1px; }
+        .tag-red    { background: #fee2e2; color: #b91c1c; }
+        .tag-amber  { background: #fef3c7; color: #92400e; }
+        .tag-blue   { background: #dbeafe; color: #1e40af; }
+        .tag-green  { background: #d1fae5; color: #065f46; }
+        .tag-purple { background: #ede9fe; color: #5b21b6; }
+        .tag-gray   { background: #f3f4f6; color: #374151; }
+        .tag-pink   { background: #fce7f3; color: #9d174d; }
+        .tag-teal   { background: #ccfbf1; color: #0f766e; }
+        .tag-orange { background: #ffedd5; color: #9a3412; }
+        .nav-active { background: #eff6ff !important; color: #2563eb !important; }
+        .risk-CRITICAL { color: #dc2626; font-weight: 700; }
+        .risk-HIGH     { color: #d97706; font-weight: 700; }
+        .risk-MEDIUM   { color: #2563eb; font-weight: 700; }
+        .risk-LOW      { color: #059669; font-weight: 700; }
+        .risk-MINIMAL  { color: #6b7280; font-weight: 600; }
+        .truncate-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .pii-highlight { background: #fef9c3; border: 1px solid #fde047; border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 11px; color: #713f12; }
+        .intel-section { border-left: 3px solid #e5e7eb; padding-left: 10px; }
+        .intel-section.has-data { border-left-color: #ef4444; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
 
-    <div class="flex h-screen overflow-hidden">
-        
-        <!-- SIDEBAR (Matches image-2.png) -->
-        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col justify-between">
-            <div>
-                <div class="p-6 flex items-center space-x-2 border-b border-gray-100">
-                    <div class="bg-blue-600 text-white p-2 rounded-lg">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg leading-none text-gray-900">NetWatch</h1>
-                        <span class="text-xs text-gray-500 font-medium">LEA • V0.1</span>
-                    </div>
-                </div>
-                <nav class="p-4 space-y-1">
-                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-lg font-medium text-sm">
-                        <i class="fas fa-terminal w-5 text-center"></i> <span>Command Center</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                        <i class="fas fa-rss w-5 text-center"></i> <span>Live OSINT Feed</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                        <i class="fas fa-bullseye w-5 text-center"></i> <span>Reddit Scrapers</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                        <i class="fas fa-archive w-5 text-center"></i> <span>Evidence Vault</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                        <i class="fas fa-users-cog w-5 text-center"></i> <span>Suspect Dossiers</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
-                        <i class="fas fa-balance-scale w-5 text-center"></i> <span>§69B Generator</span>
-                    </a>
-                </nav>
-            </div>
-            
-            <!-- Officer Profile Bottom Profile Block -->
-            <div class="p-4 border-t border-gray-100 bg-gray-50/70">
-                <span class="text-[10px] uppercase font-bold tracking-wider text-gray-400 block mb-1">Live • Operational</span>
-                <div class="text-xs font-semibold text-gray-700">NCB-DL-4471</div>
-                <div class="text-sm font-bold text-gray-900">Officer R. Sharma</div>
-                <div class="text-xs text-gray-500">Narcotics Control Bureau</div>
-            </div>
-        </aside>
+<div class="flex h-screen overflow-hidden">
 
-        <!-- MAIN LAYOUT SPACE -->
-        <main class="flex-1 flex flex-col overflow-y-auto">
-            
-            <!-- Top Alert Banner System Context Header -->
-            <header class="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between text-xs font-medium">
-                <div class="flex items-center space-x-6">
-                    <div>OP. SECTOR: <span class="font-bold text-gray-900">IND-NCB-CYB-04</span></div>
-                    <div>CLASSIFICATION: <span class="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-red-100">Restricted</span></div>
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col justify-between flex-shrink-0">
+        <div>
+            <div class="p-6 flex items-center space-x-2 border-b border-gray-100">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-shield-alt"></i>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <span class="inline-flex items-center bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold">
-                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
-                        Reddit Monitoring System Active
-                    </span>
-                </div>
-            </header>
-
-            <!-- Dashboard Content Panel -->
-            <div class="p-8 space-y-6">
                 <div>
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-900">Command Center</h2>
-                            <p class="text-sm text-gray-500">Real-time anti-narcotics surveillance via public community signals (India Grid)</p>
-                        </div>
-                        <button onclick="triggerScan()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow-sm flex items-center space-x-2">
-                            <i class="fas fa-sync-alt animate-spin-hover"></i> <span>Force Scraping Run</span>
-                        </button>
-                    </div>
+                    <h1 class="font-bold text-lg leading-none text-gray-900">NetWatch</h1>
+                    <span class="text-xs text-gray-500 font-medium">LEA • V0.1</span>
                 </div>
-
-                <!-- Stats Grid Row -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Subreddits Tracked</div>
-                        <div id="stat-channels" class="text-3xl font-extrabold text-gray-900 mt-1">14</div>
-                        <div class="text-xs text-gray-500 mt-1">Target Indian Hubs</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Flagged Posts</div>
-                        <div id="stat-posts" class="text-3xl font-extrabold text-gray-900 mt-1">182</div>
-                        <div class="text-xs text-red-600 font-semibold mt-1"><i class="fas fa-arrow-up"></i> Scanned 30m ago</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Evidence Anchored</div>
-                        <div id="stat-evidence" class="text-3xl font-extrabold text-gray-900 mt-1">52</div>
-                        <div class="text-xs text-gray-500 mt-1">SHA-256 Secured Vault</div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Suspect Dossiers</div>
-                        <div id="stat-dossiers" class="text-3xl font-extrabold text-gray-900 mt-1">9</div>
-                        <div class="text-xs text-emerald-600 font-semibold mt-1">Ready for NCB Action</div>
-                    </div>
-                </div>
-
-                <!-- Splitted Threat Intel Map & Alerts Feed Row -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- Middle Left Block: Threat Hotspots -->
-                    <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-bold text-gray-900 text-sm uppercase tracking-wider mb-4 text-gray-400">Geospatial Intel • Threat Map Bharat</h3>
-                            <div class="relative w-full h-64 bg-slate-900 rounded-lg flex items-center justify-center text-gray-500 overflow-hidden">
-                                <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
-                                <!-- Mock Map Pins Visuals -->
-                                <div class="absolute top-1/4 left-1/3 flex items-center space-x-2 bg-black/50 text-white px-2 py-1 rounded text-[10px] border border-red-500/50">
-                                    <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                                    <span>Manali Node</span>
-                                </div>
-                                <div class="absolute top-1/2 left-1/2 flex items-center space-x-2 bg-black/50 text-white px-2 py-1 rounded text-[10px] border border-amber-500/50">
-                                    <span class="w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
-                                    <span>Delhi Hub</span>
-                                </div>
-                                <span class="text-xs font-mono tracking-widest text-slate-400 z-10">MAP ENGINE INITIALIZED</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Middle Right Block: Live Incident Stream -->
-                    <div class="bg-white rounded-xl border border-gray-200 p-5 flex flex-col">
-                        <h3 class="font-bold text-gray-900 text-sm uppercase tracking-wider mb-4 text-gray-400">Live OSINT Intelligence Stream</h3>
-                        <div id="alerts-feed" class="space-y-3 overflow-y-auto max-h-[17.5rem] pr-1">
-                            <!-- Injected Dynamically by JS -->
-                        </div>
-                    </div>
-                </div>
-
             </div>
-        </main>
-    </div>
+            <nav class="p-4 space-y-1">
+                <a href="#" onclick="showPage('command')" id="nav-command"
+                   class="nav-active flex items-center space-x-3 px-4 py-2.5 rounded-lg font-medium text-sm transition">
+                    <i class="fas fa-terminal w-5 text-center"></i><span>Command Center</span>
+                </a>
+                <a href="#" onclick="showPage('vault')" id="nav-vault"
+                   class="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm transition">
+                    <i class="fas fa-archive w-5 text-center"></i><span>Evidence Vault</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-gray-100 bg-gray-50/70">
+            <span class="text-[10px] uppercase font-bold tracking-wider text-gray-400 block mb-1">Live • Operational</span>
+            <div class="text-xs font-semibold text-gray-700">NCB-DL-4471</div>
+            <div class="text-sm font-bold text-gray-900">Officer R. Sharma</div>
+            <div class="text-xs text-gray-500">Narcotics Control Bureau</div>
+        </div>
+    </aside>
 
-    <!-- UI Core Logic Hydrator script -->
-   <script>
-    const API_URL = "http://127.0.0.1:8000/api";
+    <!-- MAIN -->
+    <main class="flex-1 flex flex-col overflow-hidden">
 
-// Hydrates stats boxes and interactive panels natively
+        <!-- HEADER -->
+        <header class="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between text-xs font-medium flex-shrink-0">
+            <div class="flex items-center space-x-6">
+                <div>OP. SECTOR: <span class="font-bold text-gray-900">IND-NCB-CYB-04</span></div>
+                <div>CLASSIFICATION: <span class="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-red-100">Restricted</span></div>
+            </div>
+            <span class="inline-flex items-center bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold">
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+                Reddit Monitoring Active
+            </span>
+        </header>
+
+        <div class="flex-1 overflow-y-auto">
+
+            <!-- ══════════════════════════════════ -->
+            <!-- COMMAND CENTER                     -->
+            <!-- ══════════════════════════════════ -->
+            <div id="page-command" class="p-8 space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Command Center</h2>
+                        <p class="text-sm text-gray-500">Real-time anti-narcotics surveillance • Posts + Comments</p>
+                    </div>
+                    <button onclick="triggerScan()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow-sm flex items-center space-x-2">
+                        <i class="fas fa-sync-alt" id="scan-icon"></i><span>Force Scraping Run</span>
+                    </button>
+                </div>
+
+                <!-- STATS -->
+                <div class="grid grid-cols-4 gap-5">
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Subreddits Tracked</div>
+                        <div id="stat-channels" class="text-3xl font-extrabold text-gray-900 mt-1">0</div>
+                        <div class="text-xs text-gray-500 mt-1">Target Hubs</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Flagged Posts</div>
+                        <div id="stat-posts" class="text-3xl font-extrabold text-gray-900 mt-1">0</div>
+                        <div class="text-xs text-red-600 font-semibold mt-1"><i class="fas fa-arrow-up"></i> AI Classified</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Evidence Anchored</div>
+                        <div id="stat-evidence" class="text-3xl font-extrabold text-gray-900 mt-1">0</div>
+                        <div class="text-xs text-gray-500 mt-1">SHA-256 Secured</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">High Risk Channels</div>
+                        <div id="stat-dossiers" class="text-3xl font-extrabold text-gray-900 mt-1">0</div>
+                        <div class="text-xs text-emerald-600 font-semibold mt-1">Risk Score ≥ 7</div>
+                    </div>
+                </div>
+
+                <!-- CHANNELS TABLE -->
+                <div class="bg-white rounded-xl border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <h3 class="font-bold text-gray-900 text-sm">Scanned Channels</h3>
+                        <span class="text-xs text-gray-400">Auto-refreshes every 5s</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                                    <th class="px-6 py-3 text-left">Subreddit</th>
+                                    <th class="px-6 py-3 text-left">Posts+Comments</th>
+                                    <th class="px-6 py-3 text-left">Flagged</th>
+                                    <th class="px-6 py-3 text-left">Risk Score</th>
+                                    <th class="px-6 py-3 text-left">Risk Level</th>
+                                    <th class="px-6 py-3 text-left">Substances</th>
+                                    <th class="px-6 py-3 text-left">Bot Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="channels-table" class="divide-y divide-gray-50">
+                                <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400 text-xs">No channels scanned yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- LIVE FEED -->
+                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                    <h3 class="font-bold text-sm uppercase tracking-wider mb-4 text-gray-400">Live OSINT Intelligence Stream</h3>
+                    <div id="alerts-feed" class="space-y-3 max-h-64 overflow-y-auto pr-1">
+                        <div class="text-gray-400 text-center py-4 text-xs">Waiting for data...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════ -->
+            <!-- EVIDENCE VAULT                     -->
+            <!-- ══════════════════════════════════ -->
+            <div id="page-vault" class="p-8 space-y-6 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Evidence Vault</h2>
+                        <p class="text-sm text-gray-500">SHA-256 secured archive • Seller PII • Phone numbers • UPI IDs • Contacts</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <select id="vault-filter" onchange="filterVault()"
+                            class="text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium">
+                            <option value="ALL">All Labels</option>
+                            <option value="DRUG_SALE">Drug Sale</option>
+                            <option value="DRUG_PURCHASE">Drug Purchase</option>
+                            <option value="CODED_LANGUAGE">Coded Language</option>
+                            <option value="DRUG_USE">Drug Use</option>
+                        </select>
+                        <select id="pii-filter" onchange="filterVault()"
+                            class="text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium">
+                            <option value="ALL">All Posts</option>
+                            <option value="PII_ONLY">PII Only (Phone/UPI/Email)</option>
+                            <option value="SELLER_ONLY">Seller Intel Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- VAULT STATS -->
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
+                        <div id="vault-sale-count" class="text-2xl font-extrabold text-red-600">0</div>
+                        <div class="text-xs text-red-500 font-semibold mt-1">Drug Sale</div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center">
+                        <div id="vault-purchase-count" class="text-2xl font-extrabold text-amber-600">0</div>
+                        <div class="text-xs text-amber-500 font-semibold mt-1">Drug Purchase</div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 rounded-xl p-4 text-center">
+                        <div id="vault-coded-count" class="text-2xl font-extrabold text-purple-600">0</div>
+                        <div class="text-xs text-purple-500 font-semibold mt-1">Coded Language</div>
+                    </div>
+                    <div class="bg-pink-50 border border-pink-100 rounded-xl p-4 text-center">
+                        <div id="vault-pii-count" class="text-2xl font-extrabold text-pink-600">0</div>
+                        <div class="text-xs text-pink-500 font-semibold mt-1">Posts w/ PII</div>
+                    </div>
+                </div>
+
+                <!-- EVIDENCE CARDS -->
+                <div id="vault-container" class="space-y-4">
+                    <div class="text-gray-400 text-center py-8 text-xs">No evidence collected yet.</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+const API_URL = "http://127.0.0.1:8000/api";
+let allEvidence = [];
+
+// ── PAGE ROUTING ──────────────────────────────────────────
+function showPage(page) {
+    ['command','vault'].forEach(p => {
+        document.getElementById(`page-${p}`).classList.add('hidden');
+        document.getElementById(`nav-${p}`).classList.remove('nav-active');
+        document.getElementById(`nav-${p}`).classList.add('text-gray-600');
+    });
+    document.getElementById(`page-${page}`).classList.remove('hidden');
+    document.getElementById(`nav-${page}`).classList.add('nav-active');
+    document.getElementById(`nav-${page}`).classList.remove('text-gray-600');
+    if (page === 'vault') renderVault();
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+const LABEL_STYLE = {
+    DRUG_SALE:      'bg-red-100 text-red-700 border border-red-200',
+    DRUG_PURCHASE:  'bg-amber-100 text-amber-700 border border-amber-200',
+    CODED_LANGUAGE: 'bg-purple-100 text-purple-700 border border-purple-200',
+    DRUG_USE:       'bg-blue-100 text-blue-700 border border-blue-200',
+};
+const LABEL_ICON = {
+    DRUG_SALE: 'fa-tag', DRUG_PURCHASE: 'fa-shopping-cart',
+    CODED_LANGUAGE: 'fa-code', DRUG_USE: 'fa-user',
+};
+
+function labelBadge(label) {
+    const s = LABEL_STYLE[label] || 'bg-gray-100 text-gray-600';
+    const i = LABEL_ICON[label] || 'fa-circle';
+    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${s}">
+        <i class="fas ${i} text-[9px]"></i>${label.replace(/_/g,' ')}
+    </span>`;
+}
+
+function tags(arr, cls) {
+    if (!arr || !arr.length) return '<span class="text-gray-300 text-[11px]">—</span>';
+    return arr.map(t => `<span class="tag ${cls}">${t}</span>`).join('');
+}
+
+function piiTags(arr) {
+    if (!arr || !arr.length) return '<span class="text-gray-300 text-[11px]">—</span>';
+    return arr.map(t => `<span class="pii-highlight">${t}</span>`).join(' ');
+}
+
+function hasPII(item) {
+    return (
+        (item.phone_numbers   && item.phone_numbers.length)   ||
+        (item.upi_ids         && item.upi_ids.length)         ||
+        (item.email_addresses && item.email_addresses.length)
+    );
+}
+
+function hasSellerIntel(item) {
+    return hasPII(item) ||
+        (item.contact_handles  && item.contact_handles.length)  ||
+        (item.pricing          && item.pricing.length)          ||
+        (item.payment_methods  && item.payment_methods.length)  ||
+        (item.platform_links   && item.platform_links.length);
+}
+
+// ── FETCH DATA ────────────────────────────────────────────
 async function fetchDashboardData() {
     try {
-        // 1. Fetch live metrics counters from RAM store
-        const statsRes = await fetch(`${API_URL}/stats`);
+        const [statsRes, evidenceRes, channelsRes] = await Promise.all([
+            fetch(`${API_URL}/stats`),
+            fetch(`${API_URL}/evidence`),
+            fetch(`${API_URL}/channels`),
+        ]);
+
         const stats = await statsRes.json();
         document.getElementById('stat-channels').innerText = stats.channels_tracked || 0;
-        document.getElementById('stat-posts').innerText = stats.flagged_posts || 0;
-        document.getElementById('stat-evidence').innerText = stats.evidence_sealed || 0;
+        document.getElementById('stat-posts').innerText    = stats.flagged_posts    || 0;
+        document.getElementById('stat-evidence').innerText = stats.evidence_sealed  || 0;
         document.getElementById('stat-dossiers').innerText = stats.suspect_dossiers || 0;
 
-        // 2. Fetch the Evidence Vault payload to render live flagged entries
-        const evidenceRes = await fetch(`${API_URL}/evidence`);
-        const evidenceList = await evidenceRes.json();
-        const feedContainer = document.getElementById('alerts-feed');
-        feedContainer.innerHTML = '';
+        allEvidence = await evidenceRes.json();
+        renderFeed(allEvidence.slice(0, 8));
 
-        if(evidenceList.length === 0) {
-            feedContainer.innerHTML = '<div class="text-gray-400 text-center py-4">No active threats flagged yet. Run a scrape loop target.</div>';
-            return;
-        }
+        const channels = await channelsRes.json();
+        renderChannelsTable(channels);
 
-        // Add real-world entries to the UI view
-        evidenceList.forEach(item => {
-            feedContainer.innerHTML += `
-                <div class="p-3 bg-red-50/60 border border-red-100 rounded-lg text-xs space-y-1">
-                    <div class="flex justify-between font-bold text-gray-900">
-                        <span class="text-red-700 font-mono">r/${item.channel} • Target Entry</span>
-                        <span class="text-gray-400 font-normal">Active</span>
-                    </div>
-                    <p class="text-gray-700 font-sans line-clamp-3">"${item.text}"</p>
-                    <div class="pt-1 text-[10px] text-red-600 font-mono flex flex-col space-y-0.5">
-                        <div><i class="fas fa-exclamation-triangle mr-1"></i> Class: ${item.label} (${Math.round(item.confidence * 100)}% Conf)</div>
-                        <div class="text-gray-400 truncate">Hash: ${item.evidence_hash}</div>
-                    </div>
-                </div>
-            `;
-        });
     } catch (err) {
-        console.error("Connection link offline:", err);
+        console.error("API offline:", err);
     }
 }
 
-// Triggers actual live scrape of any target Indian community subreddit
+function renderFeed(items) {
+    const feed = document.getElementById('alerts-feed');
+    if (!items.length) {
+        feed.innerHTML = '<div class="text-gray-400 text-center py-4 text-xs">No threats flagged yet.</div>';
+        return;
+    }
+    feed.innerHTML = items.map(item => `
+        <div class="p-3 bg-red-50/60 border border-red-100 rounded-lg text-xs space-y-1">
+            <div class="flex justify-between items-center">
+                <span class="text-red-700 font-mono font-bold">r/${item.channel} ${item.type === 'comment' ? '• comment' : ''}</span>
+                ${labelBadge(item.label)}
+            </div>
+            <p class="text-gray-700 truncate-text">${item.text}</p>
+            <div class="text-[10px] text-gray-400 font-mono truncate">SHA: ${item.evidence_hash}</div>
+        </div>
+    `).join('');
+}
+
+function renderChannelsTable(channels) {
+    const tbody = document.getElementById('channels-table');
+    if (!channels.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-gray-400 text-xs">No channels scanned yet.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = channels.map(c => `
+        <tr class="hover:bg-gray-50 transition cursor-pointer" onclick="showPage('vault')">
+            <td class="px-6 py-3 font-mono font-bold text-blue-600">r/${c.channel_username}</td>
+            <td class="px-6 py-3 text-gray-700">${c.total_posts}</td>
+            <td class="px-6 py-3 font-bold text-red-600">${c.flagged_count}</td>
+            <td class="px-6 py-3 font-bold text-gray-900">${c.risk_score}</td>
+            <td class="px-6 py-3 risk-${c.risk_level}">${c.risk_level}</td>
+            <td class="px-6 py-3">${tags((c.substances||[]).slice(0,3), 'tag-red')}</td>
+            <td class="px-6 py-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-16 bg-gray-100 rounded-full h-1.5">
+                        <div class="bg-red-500 h-1.5 rounded-full" style="width:${c.bot_score}%"></div>
+                    </div>
+                    <span class="text-xs text-gray-500">${c.bot_score}%</span>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ── EVIDENCE VAULT ────────────────────────────────────────
+function filterVault() { renderVault(); }
+
+function renderVault() {
+    const labelFilter = document.getElementById('vault-filter').value;
+    const piiFilter   = document.getElementById('pii-filter').value;
+
+    let items = allEvidence;
+    if (labelFilter !== 'ALL') items = items.filter(e => e.label === labelFilter);
+    if (piiFilter === 'PII_ONLY')    items = items.filter(e => hasPII(e));
+    if (piiFilter === 'SELLER_ONLY') items = items.filter(e => hasSellerIntel(e));
+
+    // Update counts
+    document.getElementById('vault-sale-count').innerText     = allEvidence.filter(e => e.label === 'DRUG_SALE').length;
+    document.getElementById('vault-purchase-count').innerText = allEvidence.filter(e => e.label === 'DRUG_PURCHASE').length;
+    document.getElementById('vault-coded-count').innerText    = allEvidence.filter(e => e.label === 'CODED_LANGUAGE').length;
+    document.getElementById('vault-pii-count').innerText      = allEvidence.filter(e => hasPII(e)).length;
+
+    const container = document.getElementById('vault-container');
+    if (!items.length) {
+        container.innerHTML = '<div class="text-gray-400 text-center py-8 text-xs">No evidence matches this filter.</div>';
+        return;
+    }
+
+    container.innerHTML = items.map(item => {
+        const pii = hasPII(item);
+        const seller = hasSellerIntel(item);
+
+        return `
+        <div class="bg-white border ${pii ? 'border-red-200' : 'border-gray-200'} rounded-xl overflow-hidden shadow-sm">
+
+            <!-- Header -->
+            <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between ${pii ? 'bg-red-50/40' : 'bg-gray-50/50'}">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <span class="font-mono font-bold text-blue-600 text-sm">r/${item.channel}</span>
+                    ${item.type === 'comment' ? '<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-semibold">COMMENT</span>' : ''}
+                    ${labelBadge(item.label)}
+                    <span class="text-xs text-gray-400">${Math.round(item.confidence * 100)}% conf</span>
+                    ${pii    ? '<span class="text-[10px] bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">⚡ PII FOUND</span>' : ''}
+                    ${seller && !pii ? '<span class="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">⚠ SELLER INTEL</span>' : ''}
+                </div>
+                <a href="${item.url}" target="_blank"
+                   class="text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-1 flex-shrink-0">
+                    <i class="fas fa-external-link-alt text-[9px]"></i>View on Reddit
+                </a>
+            </div>
+
+            <!-- Post Text -->
+            <div class="px-5 py-3 border-b border-gray-100">
+                <p class="text-sm text-gray-700 truncate-text leading-relaxed">${item.text}</p>
+                <div class="mt-1.5 flex items-center gap-3 text-xs text-gray-400">
+                    <span>u/${item.author}</span>
+                    <span>•</span>
+                    <span class="font-mono">${(item.evidence_hash||'').substring(0,32)}...</span>
+                </div>
+            </div>
+
+            <!-- PII BLOCK — highlighted if found -->
+            ${pii ? `
+            <div class="px-5 py-3 bg-yellow-50/60 border-b border-yellow-100">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-yellow-700 mb-2">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>Personally Identifiable Information Extracted
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <div class="text-[10px] text-gray-500 font-semibold mb-1"><i class="fas fa-phone mr-1 text-red-500"></i>Phone Numbers</div>
+                        <div>${piiTags(item.phone_numbers)}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-gray-500 font-semibold mb-1"><i class="fas fa-wallet mr-1 text-green-600"></i>UPI IDs</div>
+                        <div>${piiTags(item.upi_ids)}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-gray-500 font-semibold mb-1"><i class="fas fa-envelope mr-1 text-blue-500"></i>Email Addresses</div>
+                        <div>${piiTags(item.email_addresses)}</div>
+                    </div>
+                </div>
+            </div>` : ''}
+
+            <!-- Intel Grid -->
+            <div class="px-5 py-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                <div class="intel-section ${(item.contact_handles||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-user-secret mr-1"></i>Contact Handles
+                    </div>
+                    ${tags(item.contact_handles, 'tag-red')}
+                </div>
+                <div class="intel-section ${(item.substances||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-pills mr-1"></i>Substances
+                    </div>
+                    ${tags(item.substances, 'tag-amber')}
+                </div>
+                <div class="intel-section ${(item.pricing||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-tag mr-1"></i>Pricing
+                    </div>
+                    ${tags(item.pricing, 'tag-green')}
+                </div>
+                <div class="intel-section ${(item.payment_methods||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-credit-card mr-1"></i>Payment
+                    </div>
+                    ${tags(item.payment_methods, 'tag-purple')}
+                </div>
+                <div class="intel-section ${(item.location_hints||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-map-marker-alt mr-1"></i>Location
+                    </div>
+                    ${tags(item.location_hints, 'tag-blue')}
+                </div>
+                <div class="intel-section ${(item.shipping_hints||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-truck mr-1"></i>Shipping
+                    </div>
+                    ${tags(item.shipping_hints, 'tag-teal')}
+                </div>
+                <div class="intel-section ${(item.hinglish_flags||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-language mr-1"></i>Hinglish Flags
+                    </div>
+                    ${tags(item.hinglish_flags, 'tag-orange')}
+                </div>
+                <div class="intel-section ${(item.platform_links||[]).length ? 'has-data' : ''}">
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                        <i class="fas fa-link mr-1"></i>Platform Links
+                    </div>
+                    ${tags(item.platform_links, 'tag-gray')}
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-5 py-2 bg-gray-50 border-t border-gray-100">
+                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">NCB Analysis: </span>
+                <span class="text-[10px] text-gray-600">${item.reason || '—'}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── SCAN TRIGGER ──────────────────────────────────────────
 async function triggerScan() {
-    // Prompting user for target choice so judges can test ANY subreddit live on the spot
-    const targetSub = prompt("Enter a Subreddit handle to target for live OSINT processing:", "opiates");
+    const targetSub = prompt("Enter subreddit to scan:", "opiates");
     if (!targetSub) return;
 
+    const icon = document.getElementById('scan-icon');
+    icon.classList.add('fa-spin');
+
     try {
-        const response = await fetch(`${API_URL}/analyze`, {
+        const res = await fetch(`${API_URL}/analyze`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ handle: targetSub, platform: "Reddit" })
         });
-        const result = await response.json();
-        
-        if(response.ok) {
-            alert(`Successfully ingested live community feed r/${targetSub}! Found ${result.flagged_count} critical violations.`);
-            fetchDashboardData();
+        const result = await res.json();
+        if (res.ok) {
+            alert(`✅ r/${targetSub} scanned!\n${result.flagged_count} flagged / ${result.total_posts} total\nRisk: ${result.risk_level} (${result.risk_score})`);
+            await fetchDashboardData();
         } else {
             alert(`Error: ${result.detail}`);
         }
-    } catch (e) {
-        alert("Failed to reach processing pipeline network endpoint.");
+    } catch(e) {
+        alert("Could not reach backend.");
+    } finally {
+        icon.classList.remove('fa-spin');
     }
 }
 
-// Hydrate elements on boot and establish active polling interval loops
 fetchDashboardData();
 setInterval(fetchDashboardData, 5000);
-   </script>
+</script>
 </body>
 </html>
