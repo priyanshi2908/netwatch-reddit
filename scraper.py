@@ -1,153 +1,185 @@
 """
-Reddit public JSON scraper — no API key, no auth, works in India.
-Uses old.reddit.com + multiple fallback strategies to bypass 403 blocks.
+NetWatch Reddit Scraper — Arctic Shift API.
+Scrapes BOTH posts AND comments for maximum intel coverage.
+Filters removed/deleted content aggressively.
 """
 import httpx
 import asyncio
-import random
-from typing import Optional
 
-# Rotate through realistic browser user agents
-USER_AGENTS = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15",
+BASE = "https://arctic-shift.photon-reddit.com/api"
+
+HEADERS = {
+    "User-Agent": "NetWatch-LEA/1.0 (Law Enforcement Research Tool)",
+    "Accept": "application/json",
+}
+
+OSINT_SUBREDDITS = ["worldnews", "news", "india", "technology"]
+DRUG_KEYWORDS = [
+    "drug", "ndps", "ncb", "narcotics", "seized", "arrested",
+    "trafficking", "smuggling", "cartel", "meth", "cocaine",
+    "heroin", "cannabis", "ganja", "charas", "mdma", "weed"
 ]
+REMOVED_MARKERS = {"[removed]", "[deleted]", "", " "}
 
-def _headers():
-    return {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "DNT": "1",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Cache-Control": "max-age=0",
-    }
 
-# Try multiple URL patterns — Reddit blocks some, not others
-def _urls(subreddit: str, limit: int):
-    return [
-        f"https://www.reddit.com/r/{subreddit}/hot.json?limit={limit}&raw_json=1",
-        f"https://old.reddit.com/r/{subreddit}/hot.json?limit={limit}&raw_json=1",
-        f"https://www.reddit.com/r/{subreddit}.json?limit={limit}&raw_json=1",
-        f"https://www.reddit.com/r/{subreddit}/new.json?limit={limit}&raw_json=1",
-    ]
+def _is_valid_text(text: str) -> bool:
+    if not text:
+        return False
+    cleaned = text.strip()
+    return cleaned not in REMOVED_MARKERS and len(cleaned) >= 20
+
+
+async def _fetch_posts(subreddit: str) -> list:
+    """Fetch posts from Arctic Shift (max 100)."""
+    url = f"{BASE}/posts/search"
+    params = {"subreddit": subreddit, "limit": 100, "sort": "desc"}
+
+    async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+        resp = await client.get(url, params=params, headers=HEADERS)
+
+    if resp.status_code != 200:
+        raise ValueError(f"Arctic Shift posts returned {resp.status_code} for r/{subreddit}.")
+
+    data = resp.json()
+    if data.get("error"):
+        raise ValueError(f"Arctic Shift error: {data['error']}")
+
+    posts = []
+    for p in (data.get("data") or []):
+        selftext = (p.get("selftext") or "").strip()
+        title    = (p.get("title") or "").strip()
+
+        if _is_valid_text(selftext):
+            text = selftext
+        elif _is_valid_text(title):
+            text = title
+        else:
+            continue
+
+        posts.append({
+            "id":           p.get("id", ""),
+            "title":        title,
+            "text":         text,
+            "author":       p.get("author", "anonymous"),
+            "url":          f"https://reddit.com{p.get('permalink', '')}",
+            "date":         p.get("created_utc"),
+            "score":        p.get("score", 0),
+            "num_comments": p.get("num_comments", 0),
+            "type":         "post",
+        })
+
+    return posts
+
+
+async def _fetch_comments(subreddit: str) -> list:
+    """Fetch comments from Arctic Shift — where sellers drop PII."""
+    url = f"{BASE}/comments/search"
+    params = {"subreddit": subreddit, "limit": 100, "sort": "desc"}
+
+    try:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+            resp = await client.get(url, params=params, headers=HEADERS)
+
+        if resp.status_code != 200:
+            return []  # Comments endpoint might not exist for all subs
+
+        data = resp.json()
+        if data.get("error"):
+            return []
+
+        comments = []
+        for c in (data.get("data") or []):
+            body = (c.get("body") or "").strip()
+            if not _is_valid_text(body):
+                continue
+
+            comments.append({
+                "id":     c.get("id", ""),
+                "title":  f"[Comment] {body[:80]}...",
+                "text":   body,
+                "author": c.get("author", "anonymous"),
+                "url":    f"https://reddit.com{c.get('permalink', '')}",
+                "date":   c.get("created_utc"),
+                "score":  c.get("score", 0),
+                "type":   "comment",
+            })
+
+        return comments
+
+    except Exception:
+        return []
 
 
 async def scrape_subreddit(subreddit: str, limit: int = 50) -> dict:
     """
-    Fetch posts from a public subreddit.
-    Tries multiple URL patterns and user agents to bypass 403.
-    Returns channel_info + list of posts.
-    Raises ValueError for private/banned/nonexistent subs.
+    Fetches both posts AND comments from a subreddit.
+    Returns combined list filtered for valid content.
     """
-    urls = _urls(subreddit, limit)
-    last_status = None
+    # Fetch posts and comments concurrently
+    posts_task    = asyncio.create_task(_fetch_posts(subreddit))
+    comments_task = asyncio.create_task(_fetch_comments(subreddit))
 
-    for url in urls:
-        try:
-            async with httpx.AsyncClient(
-                timeout=20,
-                follow_redirects=True,
-                http2=False,
-            ) as client:
-                # Small delay to avoid rate limiting
-                await asyncio.sleep(random.uniform(0.5, 1.5))
-                resp = await client.get(url, headers=_headers())
+    posts    = await posts_task
+    comments = await comments_task
 
-            last_status = resp.status_code
+    # Combine: posts first, then comments
+    combined = posts + comments
 
-            if resp.status_code == 404:
-                raise ValueError(f"r/{subreddit} does not exist.")
-
-            if resp.status_code == 200:
-                data = resp.json()
-                children = data.get("data", {}).get("children", [])
-
-                if not children:
-                    continue  # Try next URL pattern
-
-                posts = []
-                for child in children:
-                    p = child.get("data", {})
-                    text = p.get("selftext", "").strip()
-                    # Use title if body is empty or removed
-                    if not text or text in ("[removed]", "[deleted]"):
-                        text = p.get("title", "")
-                    posts.append({
-                        "id": p.get("id"),
-                        "title": p.get("title", ""),
-                        "text": text,
-                        "author": p.get("author", "anonymous"),
-                        "url": f"https://reddit.com{p.get('permalink', '')}",
-                        "date": p.get("created_utc"),
-                        "score": p.get("score", 0),
-                        "num_comments": p.get("num_comments", 0),
-                    })
-
-                channel_info = {
-                    "title": f"r/{subreddit}",
-                    "subscriber_count": data.get("data", {}).get("dist"),
-                    "description": f"Public feed tracking for r/{subreddit}",
-                }
-
-                return {"channel_info": channel_info, "posts": posts}
-
-        except ValueError:
-            raise
-        except Exception:
-            continue  # Try next URL
-
-    # All URLs failed
-    if last_status == 403:
+    if not combined:
         raise ValueError(
-            f"Reddit is blocking requests to r/{subreddit} from this IP. "
-            "Try a VPN or use Reddit API credentials."
+            f"r/{subreddit} returned no valid content. "
+            "All posts may be removed. Try: heroin, cocaine, darknetmarkets, IndianEnts"
         )
-    raise ValueError(f"Could not fetch r/{subreddit} (last status: {last_status}).")
+
+    # Deduplicate by id
+    seen = set()
+    unique = []
+    for item in combined:
+        if item["id"] not in seen:
+            seen.add(item["id"])
+            unique.append(item)
+
+    channel_info = {
+        "title":            f"r/{subreddit}",
+        "subscriber_count": None,
+        "description":      f"Arctic Shift feed for r/{subreddit} — {len(posts)} posts + {len(comments)} comments",
+    }
+
+    print(f"[Scraper] r/{subreddit}: {len(posts)} posts + {len(comments)} comments = {len(unique)} total")
+
+    return {"channel_info": channel_info, "posts": unique[:limit*2]}
 
 
 async def get_osint_feed() -> list:
-    """
-    Powers the Live Intelligence Feed panel.
-    Tries multiple subreddits and filters by drug-related keywords.
-    """
-    subreddits = ["worldnews", "news", "technology", "globalnews"]
-    keywords = ["drug", "ndps", "ncb", "narcotics", "seized", "arrested", "trafficking", "smuggling", "cartel"]
+    """Powers the Live Intelligence Feed panel."""
     feed = []
 
     async def fetch_sub(sub):
         try:
-            url = f"https://www.reddit.com/r/{sub}/new.json?limit=20&raw_json=1"
+            url = f"{BASE}/posts/search"
+            params = {"subreddit": sub, "limit": 30, "sort": "desc"}
             async with httpx.AsyncClient(timeout=12, follow_redirects=True) as client:
-                await asyncio.sleep(random.uniform(0.2, 0.8))
-                resp = await client.get(url, headers=_headers())
+                resp = await client.get(url, params=params, headers=HEADERS)
             if resp.status_code != 200:
                 return []
             data = resp.json()
-            children = data.get("data", {}).get("children", [])
             results = []
-            for child in children:
-                p = child.get("data", {})
-                title = p.get("title", "")
-                if any(kw.lower() in title.lower() for kw in keywords):
+            for p in (data.get("data") or []):
+                title = (p.get("title") or "").strip()
+                if not _is_valid_text(title):
+                    continue
+                if any(kw.lower() in title.lower() for kw in DRUG_KEYWORDS):
                     results.append({
-                        "title": title,
-                        "url": f"https://reddit.com{p.get('permalink', '')}",
-                        "source": f"r/{sub}",
+                        "title":   title,
+                        "url":     f"https://reddit.com{p.get('permalink', '')}",
+                        "source":  f"r/{sub}",
                         "created": p.get("created_utc"),
                     })
             return results
         except Exception:
             return []
 
-    results = await asyncio.gather(*[fetch_sub(s) for s in subreddits])
+    results = await asyncio.gather(*[fetch_sub(s) for s in OSINT_SUBREDDITS])
     for r in results:
         feed.extend(r)
 
