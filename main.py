@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
+import uvicorn
 
 load_dotenv()
 
@@ -174,3 +175,12 @@ def evidence_vault():
 def suspect_dossiers():
     cases = get_all_cases()
     return [c for c in cases if c.get("risk_score", 0) >= 7]
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host=os.getenv("UVICORN_HOST", "127.0.0.1"),
+        port=int(os.getenv("UVICORN_PORT", "8000")),
+        reload=os.getenv("UVICORN_RELOAD", "true").lower() in {"1", "true", "yes", "on"},
+    )

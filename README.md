@@ -113,8 +113,16 @@ Get your free Groq key at: https://console.groq.com/keys
 
 ### 5. Start the backend
 
+Development mode with auto-reload:
+
 ```bash
-uvicorn main:app --reload --port 8000
+python main.py
+```
+
+Or explicitly with uvicorn:
+
+```bash
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 You should see:
@@ -135,6 +143,8 @@ npx serve . --port 5500
 ```
 
 Then open: **http://localhost:5500**
+
+For domain deployment behind Nginx/Caddy, serve `frontend/index.html` from the same domain and proxy `/api` to the FastAPI app. The frontend now uses `/api` automatically when not opened from `file://`.
 
 ---
 

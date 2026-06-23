@@ -213,7 +213,9 @@
 </div>
 
 <script>
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = window.location.protocol === "file:"
+    ? "http://127.0.0.1:8000/api"
+    : `${window.location.origin}/api`;
 let allEvidence = [];
 
 // ── PAGE ROUTING ──────────────────────────────────────────
